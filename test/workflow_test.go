@@ -1,14 +1,12 @@
 package test_test
 
 import (
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
+	"github.com/jaedle/test-and-commit-or-revert/test"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"os"
 	"os/exec"
-	"path"
 )
 
 var _ = Describe("Workflow", Ordered, func() {
@@ -22,13 +20,13 @@ var _ = Describe("Workflow", Ordered, func() {
 	})
 
 	BeforeEach(func() {
-		dir, err := os.MkdirTemp(os.TempDir(), "workflow-")
+		dir2, err := os.MkdirTemp(os.TempDir(), "workflow-")
 		Expect(err).NotTo(HaveOccurred())
-		testDirectory = dir
+		testDirectory = dir2
 	})
 
 	AfterEach(func() {
-		//_ = os.RemoveAll(testDirectory)
+		_ = os.RemoveAll(testDirectory)
 	})
 
 	AfterAll(func() {
@@ -37,29 +35,9 @@ var _ = Describe("Workflow", Ordered, func() {
 
 	Context("happy path", func() {
 		It("succeeds if run within a git repository", func() {
-			repo, err := git.PlainInit(testDirectory, false)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(repo.CreateBranch(&config.Branch{
-				Name: "main",
-			})).NotTo(HaveOccurred())
-			Expect(os.WriteFile(path.Join(testDirectory, ".test"), nil, os.ModePerm)).NotTo(HaveOccurred())
-
-			worktree, err := repo.Worktree()
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = worktree.Add(".test")
-			Expect(err).NotTo(HaveOccurred())
-			_, err = worktree.Commit("amazing", &git.CommitOptions{
-				All:               false,
-				AllowEmptyCommits: false,
-				Author:            nil,
-				Committer:         nil,
-				Parents:           nil,
-				SignKey:           nil,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
 			println(testDirectory)
+			helper := test.NewGitHelper(testDirectory)
+			Expect(helper.WithCommits()).NotTo(HaveOccurred())
 
 			cmd := exec.Command(binary)
 			cmd.Dir = testDirectory
