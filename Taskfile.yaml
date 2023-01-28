@@ -6,8 +6,16 @@ tasks:
   world:
     desc: run all validation tasks
     cmds:
+      - task: workflow-test
       - task: build
       - task: vendor
+
+  workflow-test:
+    desc: workflow test
+    dir: test/
+    cmds:
+      - go clean -testcache
+      - go test -v ./...
 
   build:
     deps: [ clean ]
