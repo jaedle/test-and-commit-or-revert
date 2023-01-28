@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import "os"
 
 func main() {
-	fmt.Println("Hello World")
+	_, err := os.Stat(".git")
+	if err != nil {
+		os.Exit(1)
+	}
 }
