@@ -1,0 +1,29 @@
+version: '3'
+
+silent: true
+
+tasks:
+  world:
+    desc: run all validation tasks
+    cmds:
+      - task: build
+      - task: vendor
+
+  build:
+    deps: [ clean ]
+    desc: build binaries
+    cmds:
+      - mkdir out/
+      - go build -o out/cli cmd/cli/main.go
+
+  vendor:
+    cmds:
+      - go mod verify
+      - go mod tidy
+      - go mod vendor
+
+
+  clean: rm -rf out/
+
+  default:
+    cmds: [ task: world ]
