@@ -6,9 +6,14 @@ tasks:
   world:
     desc: run all validation tasks
     cmds:
+      - task: format
       - task: workflow-test
       - task: build
       - task: vendor
+
+  format:
+    desc: format sources
+    cmds: [ go fmt ./... ]
 
   workflow-test:
     desc: workflow test
