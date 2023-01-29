@@ -24,7 +24,7 @@ func (h *GitHelper) WithCommits() error {
 	}
 	h.repo = repo
 
-	if err := os.WriteFile(path.Join(h.dir, ".test"), nil, os.ModePerm); err != nil {
+	if err := os.WriteFile(path.Join(h.dir, "README.md"), []byte("# Dummy"), os.ModePerm); err != nil {
 		return err
 	}
 
@@ -33,7 +33,7 @@ func (h *GitHelper) WithCommits() error {
 		return err
 	}
 
-	if _, err := wt.Add(".test"); err != nil {
+	if _, err := wt.Add("README.md"); err != nil {
 		return err
 	}
 
