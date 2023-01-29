@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("Workflow", Ordered, func() {
 	var binary string
-	var testDirectory string
+	var workdir string
 
 	BeforeAll(func() {
 		var err error
@@ -20,13 +20,13 @@ var _ = Describe("Workflow", Ordered, func() {
 	})
 
 	BeforeEach(func() {
-		dir2, err := os.MkdirTemp(os.TempDir(), "workflow-")
+		d, err := os.MkdirTemp(os.TempDir(), "tcr-workflow-test")
 		Expect(err).NotTo(HaveOccurred())
-		testDirectory = dir2
+		workdir = d
 	})
 
 	AfterEach(func() {
-		_ = os.RemoveAll(testDirectory)
+		_ = os.RemoveAll(workdir)
 	})
 
 	AfterAll(func() {
@@ -35,12 +35,11 @@ var _ = Describe("Workflow", Ordered, func() {
 
 	Context("happy path", func() {
 		It("succeeds if run within a git repository", func() {
-			println(testDirectory)
-			helper := test.NewGitHelper(testDirectory)
+			helper := test.NewGitHelper(workdir)
 			Expect(helper.WithCommits()).NotTo(HaveOccurred())
 
 			cmd := exec.Command(binary)
-			cmd.Dir = testDirectory
+			cmd.Dir = workdir
 
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -52,7 +51,7 @@ var _ = Describe("Workflow", Ordered, func() {
 	Context("error cases", func() {
 		It("fails if not run within a git repository", func() {
 			cmd := exec.Command(binary)
-			cmd.Dir = testDirectory
+			cmd.Dir = workdir
 
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
