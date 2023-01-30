@@ -6,15 +6,15 @@ import (
 )
 
 func main() {
-	result, err := internal.New(internal.Config{
+	result := internal.New(internal.Config{
 		Workdir: ".",
 	}).Run()
-	if err != nil {
-		os.Exit(1)
-	} else if *result == internal.Failure {
-		os.Exit(1)
-	} else {
+	switch result {
+	case internal.Success:
 		os.Exit(0)
+	case internal.Failure:
+		os.Exit(1)
+	case internal.Error:
+		os.Exit(1)
 	}
-
 }

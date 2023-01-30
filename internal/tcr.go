@@ -14,6 +14,7 @@ type Result int
 const (
 	Success Result = iota
 	Failure Result = iota
+	Error   Result = iota
 )
 
 type config struct {
@@ -22,7 +23,10 @@ type config struct {
 
 func New(c Config) *Tcr {
 	return &Tcr{
-		logger: zerolog.New(os.Stdout).With().Timestamp().Logger(),
+		logger: zerolog.New(os.Stdout).
+			Output(zerolog.NewConsoleWriter()).
+			With().Timestamp().
+			Logger(),
 	}
 }
 
@@ -32,26 +36,36 @@ type Tcr struct {
 	logger zerolog.Logger
 }
 
-func (t *Tcr) Run() (*Result, error) {
+func (t *Tcr) Run() Result {
 	if err := t.readConfig(); err != nil {
-		return nil, err
+		t.logger.Err(err).Msg("error on reading configuration")
+		return Error
 	}
 
 	if err := t.openRepository(); err != nil {
-		return nil, err
+		t.logger.Err(err).Msg("error on opening git repository")
+		return Error
 	}
 
 	if passed, err := t.test(); err != nil {
-		return nil, err
+		t.logger.Err(err).Msg("error on running tests")
+		return Error
 	} else if passed {
-		return t.commit()
-	} else {
-		if err := t.revert(); err != nil {
-			return nil, err
-		}
+		t.logger.Info().Msg("tests have passed")
 
-		var result = Failure
-		return &result, nil
+		if err := t.commit(); err != nil {
+			t.logger.Err(err).Msg("error on commit")
+			return Error
+		} else {
+			return Success
+		}
+	} else {
+		t.logger.Info().Msg("tests have failed")
+		if err := t.revert(); err != nil {
+			t.logger.Err(err).Msg("error on reverting commit")
+			return Error
+		}
+		return Failure
 	}
 
 }
@@ -93,7 +107,7 @@ func (t *Tcr) test() (bool, error) {
 	err := cmd.Run()
 
 	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		println("exit error", err.Error())
+		t.logger.Info().Err(err).Msg("test execution failed")
 		return false, nil
 	} else if err != nil {
 		println("general error", err.Error())
@@ -103,24 +117,20 @@ func (t *Tcr) test() (bool, error) {
 	}
 }
 
-func (t *Tcr) commit() (*Result, error) {
+func (t *Tcr) commit() error {
 	t.logger.Trace().Msg("commiting")
 
 	wt, err := t.repo.Worktree()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := wt.AddGlob("*"); err != nil {
-		return nil, err
+		return err
 	}
 
-	if _, err := wt.Commit("[WIP] refactoring", &git.CommitOptions{}); err != nil {
-		return nil, err
-	}
-
-	var result = Success
-	return &result, nil
+	_, err = wt.Commit("[WIP] refactoring", &git.CommitOptions{})
+	return err
 }
 
 func (t *Tcr) revert() error {
