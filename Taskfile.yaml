@@ -40,6 +40,10 @@ tasks:
       - go mod tidy
       - go mod vendor
 
+  install:
+    desc: install binary into "$HOME/bin"
+    deps: [ build ]
+    cmds: [ cp out/cli "$HOME/bin/tcr" ]
 
   clean: rm -rf out/
 

@@ -37,13 +37,13 @@ type Tcr struct {
 }
 
 func (t *Tcr) Run() Result {
-	if err := t.readConfig(); err != nil {
-		t.logger.Err(err).Msg("error on reading configuration")
+	if err := t.openRepository(); err != nil {
+		t.logger.Err(err).Msg("error on opening git repository")
 		return Error
 	}
 
-	if err := t.openRepository(); err != nil {
-		t.logger.Err(err).Msg("error on opening git repository")
+	if err := t.readConfig(); err != nil {
+		t.logger.Err(err).Msg("error on reading configuration")
 		return Error
 	}
 
