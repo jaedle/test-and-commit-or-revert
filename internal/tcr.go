@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/rs/zerolog"
 	"os"
 	"os/exec"
 )
@@ -20,12 +21,15 @@ type config struct {
 }
 
 func New(c Config) *Tcr {
-	return &Tcr{}
+	return &Tcr{
+		logger: zerolog.New(os.Stdout).With().Timestamp().Logger(),
+	}
 }
 
 type Tcr struct {
 	config config
 	repo   *git.Repository
+	logger zerolog.Logger
 }
 
 func (t *Tcr) Run() (*Result, error) {
@@ -53,6 +57,8 @@ func (t *Tcr) Run() (*Result, error) {
 }
 
 func (t *Tcr) readConfig() error {
+	t.logger.Trace().Msg("reading configuration")
+
 	file, err := os.Open("tcr.json")
 	if err != nil {
 		return err
@@ -68,7 +74,38 @@ func (t *Tcr) readConfig() error {
 	return nil
 }
 
+func (t *Tcr) openRepository() error {
+	t.logger.Trace().Msg("opening repository")
+
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		return err
+	}
+
+	t.repo = repo
+	return nil
+}
+
+func (t *Tcr) test() (bool, error) {
+	t.logger.Trace().Msg("running tests")
+
+	cmd := exec.Command(t.config.Test)
+	err := cmd.Run()
+
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		println("exit error", err.Error())
+		return false, nil
+	} else if err != nil {
+		println("general error", err.Error())
+		return false, err
+	} else {
+		return true, nil
+	}
+}
+
 func (t *Tcr) commit() (*Result, error) {
+	t.logger.Trace().Msg("commiting")
+
 	wt, err := t.repo.Worktree()
 	if err != nil {
 		return nil, err
@@ -86,34 +123,9 @@ func (t *Tcr) commit() (*Result, error) {
 	return &result, nil
 }
 
-func (t *Tcr) test() (bool, error) {
-	println("running tests")
-
-	cmd := exec.Command(t.config.Test)
-	err := cmd.Run()
-
-	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
-		println("exit error", err.Error())
-		return false, nil
-	} else if err != nil {
-		println("general error", err.Error())
-		return false, err
-	} else {
-		return true, nil
-	}
-}
-
-func (t *Tcr) openRepository() error {
-	repo, err := git.PlainOpen(".")
-	if err != nil {
-		return err
-	}
-
-	t.repo = repo
-	return nil
-}
-
 func (t *Tcr) revert() error {
+	t.logger.Trace().Msg("reverting commit")
+
 	worktree, err := t.repo.Worktree()
 	if err != nil {
 		return nil
