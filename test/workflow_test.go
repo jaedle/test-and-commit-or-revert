@@ -71,6 +71,19 @@ var _ = Describe("Workflow", Ordered, func() {
 		})
 	})
 
+	Context("clean worktree", func() {
+		It("does not create a new commit", func() {
+			givenAPassingTestSetup(workdir, gitHelper)
+			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
+			commits := givenCommits(gitHelper)
+			exitCode := whenIRunTcr(binary, workdir)
+
+			thenTcrSucceeds(exitCode)
+			thenTheWorkingTreeIsClean(gitHelper)
+			thenNoNewCommitIsAdded(gitHelper, commits)
+		})
+	})
+
 	Context("tests failing", func() {
 		It("removes untracked files", func() {
 			givenAFailingTestSetup(workdir, gitHelper)
@@ -163,6 +176,11 @@ func thenANewCommitIsCreated(helper *test.GitHelper, previous test.Commits, msg 
 	Expect(len(commits)).To(Equal(len(previous)+1), "new commit must be added")
 	Expect(commits[1:]).To(Equal(previous))
 	Expect(commits[0].Message).To(Equal(msg))
+}
+func thenNoNewCommitIsAdded(helper *test.GitHelper, previous test.Commits) {
+	commits, err := helper.Commits()
+	Expect(err).NotTo(HaveOccurred())
+	Expect(commits).To(Equal(previous))
 }
 
 func givenCommits(helper *test.GitHelper) test.Commits {

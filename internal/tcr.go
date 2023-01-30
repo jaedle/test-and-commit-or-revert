@@ -47,6 +47,14 @@ func (t *Tcr) Run() Result {
 		return Error
 	}
 
+	if clean, err := t.cleanWorktree(); err != nil {
+		t.logger.Err(err).Msg("error on running tests")
+		return Error
+	} else if clean {
+		t.logger.Info().Msg("worktree is clean, nothing to do")
+		return Success
+	}
+
 	if passed, err := t.test(); err != nil {
 		t.logger.Err(err).Msg("error on running tests")
 		return Error
@@ -70,6 +78,18 @@ func (t *Tcr) Run() Result {
 
 }
 
+func (t *Tcr) openRepository() error {
+	t.logger.Trace().Msg("opening repository")
+
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		return err
+	}
+
+	t.repo = repo
+	return nil
+}
+
 func (t *Tcr) readConfig() error {
 	t.logger.Trace().Msg("reading configuration")
 
@@ -88,16 +108,18 @@ func (t *Tcr) readConfig() error {
 	return nil
 }
 
-func (t *Tcr) openRepository() error {
-	t.logger.Trace().Msg("opening repository")
-
-	repo, err := git.PlainOpen(".")
+func (t *Tcr) cleanWorktree() (bool, error) {
+	wt, err := t.repo.Worktree()
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	t.repo = repo
-	return nil
+	status, err := wt.Status()
+	if err != nil {
+		return false, err
+	}
+
+	return status.IsClean(), nil
 }
 
 func (t *Tcr) test() (bool, error) {
