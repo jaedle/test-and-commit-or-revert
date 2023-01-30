@@ -11,6 +11,10 @@ tasks:
       - task: build
       - task: vendor
 
+  lint:
+    desc: run linter
+    cmds: [ golangci-lint run ./... ]
+
   format:
     desc: format sources
     cmds: [ go fmt ./... ]

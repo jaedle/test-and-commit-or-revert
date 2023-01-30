@@ -101,7 +101,6 @@ func (t *Tcr) test() (bool, error) {
 	} else {
 		return true, nil
 	}
-	return false, nil
 }
 
 func (t *Tcr) openRepository() error {

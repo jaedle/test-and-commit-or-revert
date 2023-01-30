@@ -5,10 +5,6 @@ import (
 	"os"
 )
 
-type config struct {
-	Test string `json:"test"`
-}
-
 func main() {
 	result, err := internal.New(internal.Config{
 		Workdir: ".",
