@@ -51,8 +51,7 @@ func (t *Tcr) Run() Result {
 		t.logger.Err(err).Msg("error on running tests")
 		return Error
 	} else if passed {
-		t.logger.Info().Msg("tests have passed")
-
+		t.logger.Info().Msg("tests have passed, committing changes")
 		if err := t.commit(); err != nil {
 			t.logger.Err(err).Msg("error on commit")
 			return Error
@@ -60,12 +59,13 @@ func (t *Tcr) Run() Result {
 			return Success
 		}
 	} else {
-		t.logger.Info().Msg("tests have failed")
+		t.logger.Info().Msg("tests have failed, resetting worktree")
 		if err := t.revert(); err != nil {
 			t.logger.Err(err).Msg("error on reverting commit")
 			return Error
+		} else {
+			return Failure
 		}
-		return Failure
 	}
 
 }
