@@ -12,9 +12,9 @@ import (
 type Result int
 
 const (
-	Success Result = iota
-	Failure Result = iota
 	Error   Result = iota
+	Failure Result = iota
+	Success Result = iota
 )
 
 type config struct {
