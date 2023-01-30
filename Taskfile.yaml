@@ -7,17 +7,18 @@ tasks:
     desc: run all validation tasks
     cmds:
       - task: format
+      - task: lint
       - task: workflow-test
       - task: build
       - task: vendor
 
-  lint:
-    desc: run linter
-    cmds: [ golangci-lint run ./... ]
-
   format:
     desc: format sources
     cmds: [ go fmt ./... ]
+
+  lint:
+    desc: run linter
+    cmds: [ golangci-lint run ./... ]
 
   workflow-test:
     desc: workflow test
