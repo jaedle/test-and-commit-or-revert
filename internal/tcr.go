@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/rs/zerolog"
 	"os"
@@ -114,12 +113,12 @@ func (t *Tcr) cleanWorktree() (bool, error) {
 		return false, err
 	}
 
-	status, err := wt.Status()
-	if err != nil {
+	if status, err := wt.Status(); err != nil {
 		return false, err
+	} else {
+		return status.IsClean(), nil
 	}
 
-	return status.IsClean(), nil
 }
 
 func (t *Tcr) test() (bool, error) {
@@ -132,7 +131,7 @@ func (t *Tcr) test() (bool, error) {
 		t.logger.Info().Err(err).Msg("test execution failed")
 		return false, nil
 	} else if err != nil {
-		println("general error", err.Error())
+		t.logger.Info().Err(err).Msg("general error on running the tests")
 		return false, err
 	} else {
 		return true, nil
@@ -140,7 +139,7 @@ func (t *Tcr) test() (bool, error) {
 }
 
 func (t *Tcr) commit() error {
-	t.logger.Trace().Msg("commiting")
+	t.logger.Trace().Msg("commit")
 
 	wt, err := t.repo.Worktree()
 	if err != nil {
@@ -156,13 +155,12 @@ func (t *Tcr) commit() error {
 }
 
 func (t *Tcr) revert() error {
-	t.logger.Trace().Msg("reverting commit")
+	t.logger.Trace().Msg("revert")
 
 	worktree, err := t.repo.Worktree()
 	if err != nil {
 		return nil
 	}
-	fmt.Println("cleaned")
 
 	return worktree.Reset(&git.ResetOptions{
 		Mode: git.HardReset,
