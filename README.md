@@ -39,9 +39,9 @@ Attributes:
 tcr
 ```
 
-| worktree | result of test execution         | effect                               | exit code |    
-|----------|----------------------------------|--------------------------------------|-----------|
-| clean    | (will not be executed)           | (none)                               | zero      |
-| dirty    | tests passed                     | a new commit is created with changes | zero      |
-| dirty    | tests failed                     | worktree is reset to previous commit | non-zero  |
-| dirty    | test command can not be executed | (none)                               | non-zero  |
+| worktree | result of test execution         | effect                               | exit code  | test output |    
+|----------|----------------------------------|--------------------------------------|------------|-------------|
+| clean    | (will not be executed)           | (none)                               | zero       | (none)      |
+| dirty    | tests passed                     | a new commit is created with changes | zero       | swallowed   |
+| dirty    | tests failed                     | worktree is reset to previous commit | non-zero   | shown       |
+| dirty    | test command can not be executed | (none)                               | non-zero   | (none)      |
