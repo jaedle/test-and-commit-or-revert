@@ -6,10 +6,7 @@ import (
 )
 
 func main() {
-	result := internal.New(internal.Config{
-		Workdir: ".",
-	}).Run()
-	switch result {
+	switch internal.New().Run() {
 	case internal.Success:
 		os.Exit(0)
 	case internal.Failure:

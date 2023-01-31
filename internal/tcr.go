@@ -23,7 +23,7 @@ type config struct {
 	Test string `json:"test"`
 }
 
-func New(c Config) *Tcr {
+func New() *Tcr {
 	return &Tcr{
 		logger: zerolog.New(os.Stdout).
 			Output(zerolog.NewConsoleWriter()).
@@ -172,8 +172,4 @@ func (t *Tcr) revert() error {
 	return worktree.Reset(&git.ResetOptions{
 		Mode: git.HardReset,
 	})
-}
-
-type Config struct {
-	Workdir string
 }
