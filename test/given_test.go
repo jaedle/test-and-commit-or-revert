@@ -83,3 +83,7 @@ func givenATestCommandThatNeedsArguments(gitHelper *test.GitHelper, workdir stri
 	})
 	Expect(gitHelper.Commit()).NotTo(HaveOccurred())
 }
+
+func givenAnyUnstagedChanges(workdir string) {
+	givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+}

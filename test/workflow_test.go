@@ -41,8 +41,9 @@ var _ = Describe("Workflow", Ordered, func() {
 	})
 
 	Context("dirty worktree", func() {
-		Context("tests passing", func() {
-			It("commits untracked files on succeeded cycle", func() {
+
+		Context("test passes", func() {
+			It("commits untracked files", func() {
 				givenAPassingTestSetup(workdir, gitHelper)
 				history := givenAGitHistory(gitHelper)
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
@@ -55,7 +56,7 @@ var _ = Describe("Workflow", Ordered, func() {
 				thenANewCommitIsAdded(gitHelper, history, defaultCommitMessage)
 			})
 
-			It("commits changes on tracked files on succeeded cycle", func() {
+			It("commits tracked files", func() {
 				givenAPassingTestSetup(workdir, gitHelper)
 				givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
@@ -69,7 +70,8 @@ var _ = Describe("Workflow", Ordered, func() {
 				thenANewCommitIsAdded(gitHelper, history, defaultCommitMessage)
 			})
 		})
-		Context("tests failing", func() {
+
+		Context("test fails", func() {
 			It("removes untracked files", func() {
 				givenAFailingTestSetup(workdir, gitHelper)
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
@@ -95,7 +97,7 @@ var _ = Describe("Workflow", Ordered, func() {
 				thenTheHistoryIsUnchaged(gitHelper, commits)
 			})
 
-			It("resets staged changes on tracked files", func() {
+			It("resets already staged changes on tracked files", func() {
 				givenAFailingTestSetup(workdir, gitHelper)
 				givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 				givenStagedChanges(workdir, gitHelper, test.Files{{Name: aFileName, Content: anUpdatedContent}})
@@ -122,46 +124,48 @@ var _ = Describe("Workflow", Ordered, func() {
 				thenTheHistoryIsUnchaged(gitHelper, commits)
 			})
 		})
-		Context("tests can not be executed", func() {
-			It("does not revert", func() {
-				givenATestSetupWithNonExecutableTests(workdir, gitHelper)
-				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+	})
 
-				result := whenIRunTcr(binary, workdir)
+	Context("test execution fails", func() {
+		It("does not revert", func() {
+			givenATestSetupWithNonExecutableTests(workdir, gitHelper)
+			givenAnyUnstagedChanges(workdir)
 
-				thenTcrFails(result)
-				thenTheWorkingTreeIsNotClean(gitHelper)
-			})
+			result := whenIRunTcr(binary, workdir)
+
+			thenTcrFails(result)
+			thenTheWorkingTreeIsNotClean(gitHelper)
 		})
 	})
 
 	Context("test commands", func() {
 		It("supports arguments", func() {
 			givenATestCommandThatNeedsArguments(gitHelper, workdir)
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+			givenAnyUnstagedChanges(workdir)
 
 			result := whenIRunTcr(binary, workdir)
 
 			thenTcrSucceeds(result)
-			thenTheWorkingTreeIsClean(gitHelper)
 		})
+	})
 
-		It("outputs test output if tests fail", func() {
-			givenAFailingTestSetupWithOutput(workdir, gitHelper, "some random output")
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
-
-			result := whenIRunTcr(binary, workdir)
-
-			thenItDisplays(result, "some random output")
-		})
-
-		It("swallows test output if tests fail", func() {
+	Context("test output", func() {
+		It("is swallowed if test passes", func() {
 			givenAPassingTestSetupWithOutput(workdir, gitHelper, "some random output")
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+			givenAnyUnstagedChanges(workdir)
 
 			result := whenIRunTcr(binary, workdir)
 
 			thenItDoesNotDisplay(result, "some random output")
+		})
+
+		It("is printed if test fails", func() {
+			givenAFailingTestSetupWithOutput(workdir, gitHelper, "some random output")
+			givenAnyUnstagedChanges(workdir)
+
+			result := whenIRunTcr(binary, workdir)
+
+			thenItDisplays(result, "some random output")
 		})
 	})
 
