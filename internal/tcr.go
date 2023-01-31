@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/rs/zerolog"
 	"os"
@@ -125,11 +127,15 @@ func (t *Tcr) cleanWorktree() (bool, error) {
 func (t *Tcr) test() (bool, error) {
 	t.logger.Trace().Msg("running tests")
 
+	var out bytes.Buffer
 	cmd := exec.Command(t.testCommand[0], t.testCommand[1:]...)
+	cmd.Stdout = &out
+	cmd.Stderr = &out
 	err := cmd.Run()
 
 	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
 		t.logger.Info().Err(err).Msg("test execution failed")
+		fmt.Print(out.String())
 		return false, nil
 	} else if err != nil {
 		t.logger.Info().Err(err).Any("cmd", cmd).Msg("general error on running the tests")

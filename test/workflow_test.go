@@ -1,6 +1,7 @@
 package test_test
 
 import (
+	"bytes"
 	"github.com/jaedle/test-and-commit-or-revert/test"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -147,6 +148,24 @@ var _ = Describe("Workflow", Ordered, func() {
 			thenTcrSucceeds(exitCode)
 			thenTheWorkingTreeIsClean(gitHelper)
 		})
+
+		It("outputs test output if tests fail", func() {
+			givenAFailingTestSetupWithOutput(workdir, gitHelper, "some random output")
+			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+
+			result := whenIRunTcr2(binary, workdir)
+
+			thenItDisplays(result, "some random output")
+		})
+
+		It("swallows test output if tests fail", func() {
+			givenAPassingTestSetupWithOutput(workdir, gitHelper, "some random output")
+			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+
+			result := whenIRunTcr2(binary, workdir)
+
+			thenItDoesNotDisplay(result, "some random output")
+		})
 	})
 
 	Context("clean worktree", func() {
@@ -178,6 +197,36 @@ var _ = Describe("Workflow", Ordered, func() {
 	})
 
 })
+
+func thenItDoesNotDisplay(result tcrOutput, content string) {
+	Expect(result.stdOut).NotTo(ContainSubstring(content))
+
+}
+
+func thenItDisplays(result tcrOutput, content string) {
+	Expect(result.stdOut).To(ContainSubstring(content))
+}
+
+func givenAFailingTestSetupWithOutput(workdir string, helper *test.GitHelper, testOutput string) {
+	Expect(helper.Init()).NotTo(HaveOccurred())
+
+	givenUnstangedChanges(workdir, test.Files{
+		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
+		{Name: "test.sh", Content: "#!/usr/bin/env bash\necho'" + testOutput + "'\nexit 1"},
+	})
+
+	Expect(helper.Commit()).NotTo(HaveOccurred())
+}
+func givenAPassingTestSetupWithOutput(workdir string, helper *test.GitHelper, testOutput string) {
+	Expect(helper.Init()).NotTo(HaveOccurred())
+
+	givenUnstangedChanges(workdir, test.Files{
+		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
+		{Name: "test.sh", Content: "#!/usr/bin/env bash\necho'" + testOutput + "'\nexit 0"},
+	})
+
+	Expect(helper.Commit()).NotTo(HaveOccurred())
+}
 
 func givenATestCommandThatNeedsArguments(gitHelper *test.GitHelper, workdir string) {
 	Expect(gitHelper.Init()).NotTo(HaveOccurred())
@@ -274,6 +323,32 @@ func whenIRunTcr(binary string, workdir string) int {
 	session.Wait()
 
 	return session.ExitCode()
+}
+
+type tcrOutput struct {
+	exitCode int
+	stdOut   string
+	stdErr   string
+}
+
+func whenIRunTcr2(binary string, workdir string) tcrOutput {
+	cmd := exec.Command(binary)
+	cmd.Dir = workdir
+
+	var stdOut bytes.Buffer
+	var stdErr bytes.Buffer
+	session, err := gexec.Start(cmd, &stdOut, &stdErr)
+	Expect(err).NotTo(HaveOccurred())
+	session.Wait()
+
+	_, _ = GinkgoWriter.Write(stdErr.Bytes())
+	_, _ = GinkgoWriter.Write(stdOut.Bytes())
+
+	return tcrOutput{
+		exitCode: session.ExitCode(),
+		stdOut:   stdOut.String(),
+		stdErr:   stdErr.String(),
+	}
 }
 
 func givenAPassingTestSetup(workdir string, helper *test.GitHelper) {
