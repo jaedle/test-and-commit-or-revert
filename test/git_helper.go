@@ -114,19 +114,19 @@ func (h *GitHelper) Head() (string, error) {
 	}
 }
 
-type Commits []Commit
+type GitHistory []Commit
 type Commit struct {
 	Hash    string
 	Message string
 }
 
-func (h *GitHelper) Commits() (Commits, error) {
+func (h *GitHelper) Commits() (GitHistory, error) {
 	log, err := h.repo.Log(&git.LogOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	var result Commits
+	var result GitHistory
 	err = log.ForEach(func(c *object.Commit) error {
 		result = append(result, Commit{
 			Hash:    c.Hash.String(),

@@ -42,32 +42,98 @@ var _ = Describe("Workflow", Ordered, func() {
 		gexec.CleanupBuildArtifacts()
 	})
 
-	Context("tests passing", func() {
-		It("commits untracked files on succeeded cycle", func() {
-			givenAPassingTestSetup(workdir, gitHelper)
-			commits := givenCommits(gitHelper)
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+	Context("dirty worktree", func() {
+		Context("tests passing", func() {
+			It("commits untracked files on succeeded cycle", func() {
+				givenAPassingTestSetup(workdir, gitHelper)
+				history := givenAGitHistory(gitHelper)
+				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-			exitCode := whenIRunTcr(binary, workdir)
+				exitCode := whenIRunTcr(binary, workdir)
 
-			thenTcrSucceeds(exitCode)
-			thenTheWorkingTreeIsClean(gitHelper)
-			thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
-			thenANewCommitIsCreated(gitHelper, commits, defaultCommitMessage)
+				thenTcrSucceeds(exitCode)
+				thenTheWorkingTreeIsClean(gitHelper)
+				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
+				thenANewCommitIsAdded(gitHelper, history, defaultCommitMessage)
+			})
+
+			It("commits changes on tracked files on succeeded cycle", func() {
+				givenAPassingTestSetup(workdir, gitHelper)
+				givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
+				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
+				history := givenAGitHistory(gitHelper)
+
+				exitCode := whenIRunTcr(binary, workdir)
+
+				thenTcrSucceeds(exitCode)
+				thenTheWorkingTreeIsClean(gitHelper)
+				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
+				thenANewCommitIsAdded(gitHelper, history, defaultCommitMessage)
+			})
 		})
+		Context("tests failing", func() {
+			It("removes untracked files", func() {
+				givenAFailingTestSetup(workdir, gitHelper)
+				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-		It("commits changes on tracked files on succeeded cycle", func() {
-			givenAPassingTestSetup(workdir, gitHelper)
-			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
-			commits := givenCommits(gitHelper)
+				exitCode := whenIRunTcr(binary, workdir)
 
-			exitCode := whenIRunTcr(binary, workdir)
+				thenTcrFails(exitCode)
+				thenTheWorkingTreeIsClean(gitHelper)
+				thenTheUnstagedChangesAreReset(workdir, test.Files{{Name: aFileName, Content: aContent}})
+			})
 
-			thenTcrSucceeds(exitCode)
-			thenTheWorkingTreeIsClean(gitHelper)
-			thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
-			thenANewCommitIsCreated(gitHelper, commits, defaultCommitMessage)
+			It("resets changes to tracked files", func() {
+				givenAFailingTestSetup(workdir, gitHelper)
+				givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
+				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
+				commits := givenAGitHistory(gitHelper)
+
+				exitCode := whenIRunTcr(binary, workdir)
+
+				thenTcrFails(exitCode)
+				thenTheWorkingTreeIsClean(gitHelper)
+				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
+				thenTheHistoryIsUnchaged(gitHelper, commits)
+			})
+
+			It("resets staged changes on tracked files", func() {
+				givenAFailingTestSetup(workdir, gitHelper)
+				givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
+				givenStagedChanges(workdir, gitHelper, test.Files{{Name: aFileName, Content: anUpdatedContent}})
+				commits := givenAGitHistory(gitHelper)
+
+				exitCode := whenIRunTcr(binary, workdir)
+
+				thenTcrFails(exitCode)
+				thenTheWorkingTreeIsClean(gitHelper)
+				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
+				thenTheHistoryIsUnchaged(gitHelper, commits)
+			})
+
+			It("resets staged changes on untracked files", func() {
+				givenAFailingTestSetup(workdir, gitHelper)
+				givenStagedChanges(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
+				commits := givenAGitHistory(gitHelper)
+
+				exitCode := whenIRunTcr(binary, workdir)
+
+				thenTcrFails(exitCode)
+				thenTheWorkingTreeIsClean(gitHelper)
+				thenTheUnstagedChangesAreReset(workdir, test.Files{{Name: aFileName, Content: aContent}})
+				thenTheHistoryIsUnchaged(gitHelper, commits)
+			})
+		})
+		Context("tests can not be executed", func() {
+			It("does not revert", func() {
+				givenATestSetupWithNonExecutableTests(workdir, gitHelper)
+				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+
+				exitCode := whenIRunTcr(binary, workdir)
+
+				thenTcrFails(exitCode)
+				thenTheWorkingTreeIsNotClean(gitHelper)
+			})
 		})
 	})
 
@@ -75,72 +141,12 @@ var _ = Describe("Workflow", Ordered, func() {
 		It("does not create a new commit", func() {
 			givenAPassingTestSetup(workdir, gitHelper)
 			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
-			commits := givenCommits(gitHelper)
+			commits := givenAGitHistory(gitHelper)
 			exitCode := whenIRunTcr(binary, workdir)
 
 			thenTcrSucceeds(exitCode)
 			thenTheWorkingTreeIsClean(gitHelper)
-			thenNoNewCommitIsAdded(gitHelper, commits)
-		})
-	})
-
-	Context("tests failing", func() {
-		It("removes untracked files", func() {
-			givenAFailingTestSetup(workdir, gitHelper)
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
-
-			exitCode := whenIRunTcr(binary, workdir)
-
-			thenTcrFails(exitCode)
-			thenTheWorkingTreeIsClean(gitHelper)
-			thenTheUnstagedChangesAreReset(workdir, test.Files{{Name: aFileName, Content: aContent}})
-		})
-
-		It("resets changes to tracked files", func() {
-			givenAFailingTestSetup(workdir, gitHelper)
-			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
-
-			exitCode := whenIRunTcr(binary, workdir)
-
-			thenTcrFails(exitCode)
-			thenTheWorkingTreeIsClean(gitHelper)
-			thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
-		})
-
-		It("resets staged changes on tracked files", func() {
-			givenAFailingTestSetup(workdir, gitHelper)
-			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
-			givenStagedChanges(workdir, gitHelper, test.Files{{Name: aFileName, Content: anUpdatedContent}})
-
-			exitCode := whenIRunTcr(binary, workdir)
-
-			thenTcrFails(exitCode)
-			thenTheWorkingTreeIsClean(gitHelper)
-			thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
-		})
-
-		It("resets staged changes on untracked files", func() {
-			givenAFailingTestSetup(workdir, gitHelper)
-			givenStagedChanges(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
-
-			exitCode := whenIRunTcr(binary, workdir)
-
-			thenTcrFails(exitCode)
-			thenTheWorkingTreeIsClean(gitHelper)
-			thenTheUnstagedChangesAreReset(workdir, test.Files{{Name: aFileName, Content: aContent}})
-		})
-	})
-
-	Context("tests can not be executed", func() {
-		It("does not revert", func() {
-			givenATestSetupWithNonExecutableTests(workdir, gitHelper)
-			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
-
-			exitCode := whenIRunTcr(binary, workdir)
-
-			thenTcrFails(exitCode)
-			thenTheWorkingTreeIsNotClean(gitHelper)
+			thenTheHistoryIsUnchaged(gitHelper, commits)
 		})
 	})
 
@@ -150,7 +156,6 @@ var _ = Describe("Workflow", Ordered, func() {
 
 			Expect(status).To(Equal(1))
 		})
-
 		It("fails if no config is present", func() {
 			helper := test.NewGitHelper(workdir)
 			Expect(helper.WithCommits()).NotTo(HaveOccurred())
@@ -169,7 +174,7 @@ func thenTheUnstagedChangesAreReset(workdir string, files test.Files) {
 	}
 }
 
-func thenANewCommitIsCreated(helper *test.GitHelper, previous test.Commits, msg string) {
+func thenANewCommitIsAdded(helper *test.GitHelper, previous test.GitHistory, msg string) {
 	commits, err := helper.Commits()
 	Expect(err).NotTo(HaveOccurred())
 
@@ -177,13 +182,13 @@ func thenANewCommitIsCreated(helper *test.GitHelper, previous test.Commits, msg 
 	Expect(commits[1:]).To(Equal(previous))
 	Expect(commits[0].Message).To(Equal(msg))
 }
-func thenNoNewCommitIsAdded(helper *test.GitHelper, previous test.Commits) {
+func thenTheHistoryIsUnchaged(helper *test.GitHelper, previous test.GitHistory) {
 	commits, err := helper.Commits()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(commits).To(Equal(previous))
 }
 
-func givenCommits(helper *test.GitHelper) test.Commits {
+func givenAGitHistory(helper *test.GitHelper) test.GitHistory {
 	commits, err := helper.Commits()
 	Expect(err).NotTo(HaveOccurred())
 	return commits
