@@ -50,9 +50,9 @@ var _ = Describe("Workflow", Ordered, func() {
 				history := givenAGitHistory(gitHelper)
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-				exitCode := whenIRunTcr(binary, workdir)
+				result := whenIRunTcr(binary, workdir)
 
-				thenTcrSucceeds(exitCode)
+				thenTcrSucceeds(result)
 				thenTheWorkingTreeIsClean(gitHelper)
 				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
 				thenANewCommitIsAdded(gitHelper, history, defaultCommitMessage)
@@ -64,9 +64,9 @@ var _ = Describe("Workflow", Ordered, func() {
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
 				history := givenAGitHistory(gitHelper)
 
-				exitCode := whenIRunTcr(binary, workdir)
+				result := whenIRunTcr(binary, workdir)
 
-				thenTcrSucceeds(exitCode)
+				thenTcrSucceeds(result)
 				thenTheWorkingTreeIsClean(gitHelper)
 				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
 				thenANewCommitIsAdded(gitHelper, history, defaultCommitMessage)
@@ -77,9 +77,9 @@ var _ = Describe("Workflow", Ordered, func() {
 				givenAFailingTestSetup(workdir, gitHelper)
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-				exitCode := whenIRunTcr(binary, workdir)
+				result := whenIRunTcr(binary, workdir)
 
-				thenTcrFails(exitCode)
+				thenTcrFails(result)
 				thenTheWorkingTreeIsClean(gitHelper)
 				thenTheUnstagedChangesAreReset(workdir, test.Files{{Name: aFileName, Content: aContent}})
 			})
@@ -90,9 +90,9 @@ var _ = Describe("Workflow", Ordered, func() {
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
 				commits := givenAGitHistory(gitHelper)
 
-				exitCode := whenIRunTcr(binary, workdir)
+				result := whenIRunTcr(binary, workdir)
 
-				thenTcrFails(exitCode)
+				thenTcrFails(result)
 				thenTheWorkingTreeIsClean(gitHelper)
 				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
 				thenTheHistoryIsUnchaged(gitHelper, commits)
@@ -104,9 +104,9 @@ var _ = Describe("Workflow", Ordered, func() {
 				givenStagedChanges(workdir, gitHelper, test.Files{{Name: aFileName, Content: anUpdatedContent}})
 				commits := givenAGitHistory(gitHelper)
 
-				exitCode := whenIRunTcr(binary, workdir)
+				result := whenIRunTcr(binary, workdir)
 
-				thenTcrFails(exitCode)
+				thenTcrFails(result)
 				thenTheWorkingTreeIsClean(gitHelper)
 				thenThoseFilesExist(workdir, test.Files{{Name: aFileName, Content: aContent}})
 				thenTheHistoryIsUnchaged(gitHelper, commits)
@@ -117,9 +117,9 @@ var _ = Describe("Workflow", Ordered, func() {
 				givenStagedChanges(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 				commits := givenAGitHistory(gitHelper)
 
-				exitCode := whenIRunTcr(binary, workdir)
+				result := whenIRunTcr(binary, workdir)
 
-				thenTcrFails(exitCode)
+				thenTcrFails(result)
 				thenTheWorkingTreeIsClean(gitHelper)
 				thenTheUnstagedChangesAreReset(workdir, test.Files{{Name: aFileName, Content: aContent}})
 				thenTheHistoryIsUnchaged(gitHelper, commits)
@@ -130,9 +130,9 @@ var _ = Describe("Workflow", Ordered, func() {
 				givenATestSetupWithNonExecutableTests(workdir, gitHelper)
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-				exitCode := whenIRunTcr(binary, workdir)
+				result := whenIRunTcr(binary, workdir)
 
-				thenTcrFails(exitCode)
+				thenTcrFails(result)
 				thenTheWorkingTreeIsNotClean(gitHelper)
 			})
 		})
@@ -143,9 +143,9 @@ var _ = Describe("Workflow", Ordered, func() {
 			givenATestCommandThatNeedsArguments(gitHelper, workdir)
 			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-			exitCode := whenIRunTcr(binary, workdir)
+			result := whenIRunTcr(binary, workdir)
 
-			thenTcrSucceeds(exitCode)
+			thenTcrSucceeds(result)
 			thenTheWorkingTreeIsClean(gitHelper)
 		})
 
@@ -153,7 +153,7 @@ var _ = Describe("Workflow", Ordered, func() {
 			givenAFailingTestSetupWithOutput(workdir, gitHelper, "some random output")
 			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-			result := whenIRunTcr2(binary, workdir)
+			result := whenIRunTcr(binary, workdir)
 
 			thenItDisplays(result, "some random output")
 		})
@@ -162,7 +162,7 @@ var _ = Describe("Workflow", Ordered, func() {
 			givenAPassingTestSetupWithOutput(workdir, gitHelper, "some random output")
 			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
-			result := whenIRunTcr2(binary, workdir)
+			result := whenIRunTcr(binary, workdir)
 
 			thenItDoesNotDisplay(result, "some random output")
 		})
@@ -173,9 +173,9 @@ var _ = Describe("Workflow", Ordered, func() {
 			givenAPassingTestSetup(workdir, gitHelper)
 			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 			commits := givenAGitHistory(gitHelper)
-			exitCode := whenIRunTcr(binary, workdir)
+			result := whenIRunTcr(binary, workdir)
 
-			thenTcrSucceeds(exitCode)
+			thenTcrSucceeds(result)
 			thenTheWorkingTreeIsClean(gitHelper)
 			thenTheHistoryIsUnchaged(gitHelper, commits)
 		})
@@ -183,16 +183,16 @@ var _ = Describe("Workflow", Ordered, func() {
 
 	Context("error cases", func() {
 		It("fails if not run within a git repository", func() {
-			status := whenIRunTcr(binary, workdir)
+			result := whenIRunTcr(binary, workdir)
 
-			Expect(status).To(Equal(1))
+			thenTcrFails(result)
 		})
 		It("fails if no config is present", func() {
 			helper := test.NewGitHelper(workdir)
 			Expect(helper.WithCommits()).NotTo(HaveOccurred())
-			status := whenIRunTcr(binary, workdir)
+			result := whenIRunTcr(binary, workdir)
 
-			Expect(status).To(Equal(1))
+			thenTcrFails(result)
 		})
 	})
 
@@ -266,12 +266,12 @@ func givenAGitHistory(helper *test.GitHelper) test.GitHistory {
 	return commits
 }
 
-func thenTcrSucceeds(exitCode int) bool {
-	return Expect(exitCode).To(Equal(0))
+func thenTcrSucceeds(o tcrOutput) bool {
+	return Expect(o.exitCode).To(Equal(0))
 }
 
-func thenTcrFails(exitCode int) bool {
-	return Expect(exitCode).NotTo(Equal(0))
+func thenTcrFails(o tcrOutput) bool {
+	return Expect(o.exitCode).NotTo(Equal(0))
 }
 
 func thenTheWorkingTreeIsClean(helper *test.GitHelper) bool {
@@ -314,24 +314,13 @@ func givenACommit(workdir string, helper *test.GitHelper, f test.Files) {
 	Expect(helper.Commit()).NotTo(HaveOccurred())
 }
 
-func whenIRunTcr(binary string, workdir string) int {
-	cmd := exec.Command(binary)
-	cmd.Dir = workdir
-
-	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-	session.Wait()
-
-	return session.ExitCode()
-}
-
 type tcrOutput struct {
 	exitCode int
 	stdOut   string
 	stdErr   string
 }
 
-func whenIRunTcr2(binary string, workdir string) tcrOutput {
+func whenIRunTcr(binary string, workdir string) tcrOutput {
 	cmd := exec.Command(binary)
 	cmd.Dir = workdir
 
