@@ -32,7 +32,9 @@ tasks:
     desc: build binaries
     cmds:
       - mkdir out/
-      - go build -o out/cli cmd/cli/main.go
+      - go build -o out/tcr cmd/tcr/main.go
+
+  clean: rm -rf out/
 
   vendor:
     cmds:
@@ -43,9 +45,7 @@ tasks:
   install:
     desc: install binary into "$HOME/bin"
     deps: [ build ]
-    cmds: [ cp out/cli "$HOME/bin/tcr" ]
-
-  clean: rm -rf out/
+    cmds: [ cp out/tcr "$HOME/bin/tcr" ]
 
   default:
     cmds: [ task: world ]

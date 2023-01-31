@@ -22,7 +22,7 @@ var _ = Describe("Workflow", Ordered, func() {
 
 	BeforeAll(func() {
 		var err error
-		binary, err = gexec.Build("github.com/jaedle/test-and-commit-or-revert/cmd/cli")
+		binary, err = gexec.Build("github.com/jaedle/test-and-commit-or-revert/cmd/tcr")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
