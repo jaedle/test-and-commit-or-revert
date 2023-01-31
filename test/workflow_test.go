@@ -16,6 +16,7 @@ const anUpdatedContent = "updated content"
 var _ = Describe("Workflow", Ordered, func() {
 	var binary string
 	var workdir string
+	var tempTestDir string
 	var gitHelper *test.GitHelper
 
 	BeforeAll(func() {
@@ -25,11 +26,14 @@ var _ = Describe("Workflow", Ordered, func() {
 	})
 
 	BeforeEach(func() {
-		d, err := os.MkdirTemp(os.TempDir(), "tcr-workflow-test")
+		tmp1, err := os.MkdirTemp(os.TempDir(), "tcr-workflow-test-workdir")
 		Expect(err).NotTo(HaveOccurred())
-		workdir = d
-
+		workdir = tmp1
 		gitHelper = test.NewGitHelper(workdir)
+
+		tmp2, err := os.MkdirTemp(os.TempDir(), "tcr-workflow-test-tmp-test-dir")
+		Expect(err).NotTo(HaveOccurred())
+		tempTestDir = tmp2
 	})
 
 	AfterEach(func() {
@@ -44,7 +48,7 @@ var _ = Describe("Workflow", Ordered, func() {
 
 		Context("test passes", func() {
 			It("commits untracked files", func() {
-				givenAPassingTestSetup(workdir, gitHelper)
+				givenAPassingTestSetup(workdir, "", gitHelper)
 				history := givenAGitHistory(gitHelper)
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
@@ -57,7 +61,7 @@ var _ = Describe("Workflow", Ordered, func() {
 			})
 
 			It("commits tracked files", func() {
-				givenAPassingTestSetup(workdir, gitHelper)
+				givenAPassingTestSetup(workdir, "", gitHelper)
 				givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
 				history := givenAGitHistory(gitHelper)
@@ -171,7 +175,7 @@ var _ = Describe("Workflow", Ordered, func() {
 
 	Context("clean worktree", func() {
 		It("does not create a new commit", func() {
-			givenAPassingTestSetup(workdir, gitHelper)
+			givenAPassingTestSetup(workdir, "", gitHelper)
 			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 			commits := givenAGitHistory(gitHelper)
 			result := whenIRunTcr(binary, workdir)
@@ -179,6 +183,16 @@ var _ = Describe("Workflow", Ordered, func() {
 			thenTcrSucceeds(result)
 			thenTheWorkingTreeIsClean(gitHelper)
 			thenTheHistoryIsUnchaged(gitHelper, commits)
+		})
+
+		It("does not test", func() {
+			givenATestThatLogsRun(workdir, tempTestDir, gitHelper)
+			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
+			result := whenIRunTcr(binary, workdir)
+
+			thenTcrSucceeds(result)
+			thenTheWorkingTreeIsClean(gitHelper)
+			thenTestWasNotRun(tempTestDir)
 		})
 	})
 
@@ -188,6 +202,7 @@ var _ = Describe("Workflow", Ordered, func() {
 
 			thenTcrFails(result)
 		})
+
 		It("fails if no config is present", func() {
 			helper := test.NewGitHelper(workdir)
 			Expect(helper.WithCommits()).NotTo(HaveOccurred())

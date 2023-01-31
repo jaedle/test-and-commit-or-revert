@@ -7,8 +7,21 @@ import (
 	"path"
 )
 
-func givenAPassingTestSetup(workdir string, helper *test.GitHelper) {
+func givenAPassingTestSetup(workdir string, dir string, helper *test.GitHelper) {
 	givenAPassingTestSetupWithOutput(workdir, helper, "any")
+}
+
+func givenATestThatLogsRun(workdir string, tmpTestDir string, helper *test.GitHelper) {
+	Expect(helper.Init()).NotTo(HaveOccurred())
+
+	ran := path.Join(tmpTestDir, "ran")
+
+	givenUnstangedChanges(workdir, test.Files{
+		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
+		{Name: "test.sh", Content: "#!/usr/bin/env bash\ntouch '" + (ran) + "'\nexit 1"},
+	})
+
+	Expect(helper.Commit()).NotTo(HaveOccurred())
 }
 
 func givenAFailingTestSetup(workdir string, helper *test.GitHelper) {

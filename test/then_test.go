@@ -63,3 +63,6 @@ func thenThoseFilesExist(workdir string, files test.Files) {
 		Expect(string(file)).To(Equal(f.Content))
 	}
 }
+func thenTestWasNotRun(dir string) {
+	Expect(path.Join(dir, "ran")).NotTo(BeAnExistingFile(), "test must not be run")
+}
