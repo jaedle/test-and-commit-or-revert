@@ -137,6 +137,18 @@ var _ = Describe("Workflow", Ordered, func() {
 		})
 	})
 
+	Context("test commands", func() {
+		It("supports arguments", func() {
+			givenATestCommandThatNeedsArguments(gitHelper, workdir)
+			givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+
+			exitCode := whenIRunTcr(binary, workdir)
+
+			thenTcrSucceeds(exitCode)
+			thenTheWorkingTreeIsClean(gitHelper)
+		})
+	})
+
 	Context("clean worktree", func() {
 		It("does not create a new commit", func() {
 			givenAPassingTestSetup(workdir, gitHelper)
@@ -166,6 +178,17 @@ var _ = Describe("Workflow", Ordered, func() {
 	})
 
 })
+
+func givenATestCommandThatNeedsArguments(gitHelper *test.GitHelper, workdir string) {
+	Expect(gitHelper.Init()).NotTo(HaveOccurred())
+	givenUnstangedChanges(workdir, test.Files{
+		{Name: "tcr.json", Content: `{"test": "./test.sh argument1 argument2"}`},
+		{Name: "test.sh", Content: `#!/usr/bin/env bash
+[[ "$1" == 'argument1' ]]
+[[ "$2" == 'argument2' ]]`},
+	})
+	Expect(gitHelper.Commit()).NotTo(HaveOccurred())
+}
 
 func thenTheUnstagedChangesAreReset(workdir string, files test.Files) {
 	for _, f := range files {

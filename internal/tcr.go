@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type Result int
@@ -30,9 +31,9 @@ func New(c Config) *Tcr {
 }
 
 type Tcr struct {
-	config config
-	repo   *git.Repository
-	logger zerolog.Logger
+	repo        *git.Repository
+	logger      zerolog.Logger
+	testCommand []string
 }
 
 func (t *Tcr) Run() Result {
@@ -103,7 +104,7 @@ func (t *Tcr) readConfig() error {
 		return err
 	}
 
-	t.config = c
+	t.testCommand = strings.Split(c.Test, " ")
 	return nil
 }
 
@@ -124,14 +125,14 @@ func (t *Tcr) cleanWorktree() (bool, error) {
 func (t *Tcr) test() (bool, error) {
 	t.logger.Trace().Msg("running tests")
 
-	cmd := exec.Command(t.config.Test)
+	cmd := exec.Command(t.testCommand[0], t.testCommand[1:]...)
 	err := cmd.Run()
 
 	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
 		t.logger.Info().Err(err).Msg("test execution failed")
 		return false, nil
 	} else if err != nil {
-		t.logger.Info().Err(err).Msg("general error on running the tests")
+		t.logger.Info().Err(err).Any("cmd", cmd).Msg("general error on running the tests")
 		return false, err
 	} else {
 		return true, nil
