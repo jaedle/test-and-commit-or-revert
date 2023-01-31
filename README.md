@@ -6,18 +6,22 @@ This is a cli to apply [TCR](https://medium.com/@kentbeck_7670/test-commit-rever
 
 ### Installation
 
-To locally install the cli you may run:
-
 ```
 task intall
 ```
 
-This will build and copy the binary into `$HOME/bin`.
-Please make sure to have this configured within your path.
+This will:
+
+1. Build the binary
+2. Copy the build binary into `$HOME/bin`.
+
+Please include `$HOME/bin` into your path configuration.
 
 ### Configuration
 
-Create a configuration file `tcr.json` in the root of your repository:
+Create the file `tcr.json` in the git-repository root.
+
+Example:
 
 ```json
 {
@@ -25,19 +29,19 @@ Create a configuration file `tcr.json` in the root of your repository:
 }
 ```
 
-The configuration needs to contain your test command you wish to run before you either commit your changes or revert
-those
+Attributes:
 
-### Running
+- `test`: test command to run. Whitespaces within arguments (i.e. `task 'argument with space'`) are **not supported**.
+
+### Run tcr
 
 ```sh
 tcr
 ```
 
-If you have a clean worktree the command will do nothing and exit with no error.
-
-If you have a dirty worktree it will run the tests. It may:
-
-- if the tests pass (zero exit code), it commit the changes with a work in progress commit (`[WIP] Refactoring`)
-- if the tests fail (non-zero exit code), it will reset all changes to the repository including untracked files
-- do nothing if there is an error on executing the test command
+| worktree | result of test execution         | effect                               | exit code |    
+|----------|----------------------------------|--------------------------------------|-----------|
+| clean    | (will not be executed)           | (none)                               | zero      |
+| dirty    | tests passed                     | a new commit is created with changes | zero      |
+| dirty    | tests failed                     | worktree is reset to previous commit | non-zero  |
+| dirty    | test command can not be executed | (none)                               | non-zero  |
