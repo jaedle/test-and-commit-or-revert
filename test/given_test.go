@@ -8,25 +8,11 @@ import (
 )
 
 func givenAPassingTestSetup(workdir string, helper *test.GitHelper) {
-	Expect(helper.Init()).NotTo(HaveOccurred())
-
-	givenUnstangedChanges(workdir, test.Files{
-		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
-		{Name: "test.sh", Content: "#!/usr/bin/env bash\nexit 0"},
-	})
-
-	Expect(helper.Commit()).NotTo(HaveOccurred())
+	givenAPassingTestSetupWithOutput(workdir, helper, "any")
 }
 
 func givenAFailingTestSetup(workdir string, helper *test.GitHelper) {
-	Expect(helper.Init()).NotTo(HaveOccurred())
-
-	givenUnstangedChanges(workdir, test.Files{
-		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
-		{Name: "test.sh", Content: "#!/usr/bin/env bash\nexit 1"},
-	})
-
-	Expect(helper.Commit()).NotTo(HaveOccurred())
+	givenAFailingTestSetupWithOutput(workdir, helper, "any")
 }
 
 func givenATestSetupWithNonExecutableTests(workdir string, helper *test.GitHelper) {
