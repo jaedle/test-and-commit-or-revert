@@ -4,13 +4,18 @@ silent: true
 
 tasks:
   world:
-    desc: run all validation tasks
+    desc: run local development tasks
     cmds:
       - task: format
+      - task: ci
+      - task: vendor
+
+  ci:
+    desc: run validation tasks
+    cmds:
       - task: lint
       - task: workflow-test
       - task: build
-      - task: vendor
 
   format:
     desc: format sources
