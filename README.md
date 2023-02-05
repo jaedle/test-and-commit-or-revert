@@ -39,6 +39,8 @@ Attributes:
 tcr
 ```
 
+### Behaviour
+
 | worktree | result of test execution         | effect                               | exit code  | test output |    
 |----------|----------------------------------|--------------------------------------|------------|-------------|
 | clean    | (will not be executed)           | (none)                               | zero       | (none)      |
