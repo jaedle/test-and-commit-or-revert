@@ -12,4 +12,4 @@ jobs:
       - name: install dependencies
         uses: asdf-vm/actions/install@v1
       - name: run validation
-        run: task ci
+        run: task set-default-git-author ci

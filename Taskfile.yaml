@@ -54,3 +54,10 @@ tasks:
 
   default:
     cmds: [ task: world ]
+
+
+  set-default-git-author:
+    desc: set default author for tests running on ci
+    cmds:
+      - git config --global user.name "ci-user"
+      - git config --global user.email "ci@user.tld"
