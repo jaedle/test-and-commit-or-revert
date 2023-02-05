@@ -2,5 +2,8 @@ version: 2
 updates:
   - package-ecosystem: "gomod"
     directory: "/"
+    commit-message:
+      prefix: fix
+      include: scope
     schedule:
       interval: "daily"
