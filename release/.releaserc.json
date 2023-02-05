@@ -3,9 +3,7 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator"
   ],
-  "release": {
-    "branches": [
-      "main"
-    ]
-  }
+  "branches": [
+    "main"
+  ]
 }
