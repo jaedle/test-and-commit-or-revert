@@ -91,17 +91,7 @@ func (h *GitHelper) Commit() error {
 	} else if err := wt.AddGlob("*"); err != nil {
 		return err
 	} else {
-		_, err := wt.Commit("commit", &git.CommitOptions{
-			All:               false,
-			AllowEmptyCommits: false,
-			Author: &object.Signature{
-				Name:  "any",
-				Email: "any",
-			},
-			Committer: nil,
-			Parents:   nil,
-			SignKey:   nil,
-		})
+		_, err := wt.Commit("commit", &git.CommitOptions{})
 		return err
 	}
 
