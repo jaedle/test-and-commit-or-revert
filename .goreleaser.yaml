@@ -5,6 +5,7 @@ builds:
       - linux
       - windows
       - darwin
+    main: ./cmd/tcr
 
 archives:
   - format: tar.gz
