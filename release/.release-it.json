@@ -1,8 +1,10 @@
 {
-  "github": {
-    "release": true,
+  "git": {
     "commit": false,
     "tag": true
+  },
+  "github": {
+    "release": true
   },
   "npm": {
     "publish": false
