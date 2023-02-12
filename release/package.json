@@ -13,6 +13,7 @@
     "url": "https://github.com/jaedle/test-and-commit-or-revert"
   },
   "devDependencies": {
+    "@release-it/conventional-changelog": "^5.1.1",
     "release-it": "^15.6.0"
   }
 }
