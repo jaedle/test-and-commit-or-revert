@@ -13,27 +13,3 @@ jobs:
         uses: asdf-vm/actions/install@v1
       - name: run validation
         run: task set-default-git-author ci
-
-  release:
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.RELEASE_TOKEN }}
-      - name: install tools
-        uses: asdf-vm/actions/install@v1
-      - name: Install dependencies
-        working-directory: release/
-        run: npm ci
-      - name: release
-        working-directory: release/
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          git config user.name "release-action"
-          git config user.email "dennis.jekubczyk@gmail.com"
-          npm run release
