@@ -31,6 +31,13 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+brews:
+  - name: test-and-commit-or-revert
+    homepage: https://github.com/jaedle/homebrew-test-and-commit-or-revert
+    tap:
+      owner: jaedle
+      name: homebrew-test-and-commit-or-revert
+      token: "{{ .Env.GITHUB_TOKEN }}"
 
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.
