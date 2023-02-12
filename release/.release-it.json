@@ -4,7 +4,8 @@
     "tag": true
   },
   "github": {
-    "release": true
+    "release": true,
+    "autoGenerate": true,
   },
   "npm": {
     "publish": false
