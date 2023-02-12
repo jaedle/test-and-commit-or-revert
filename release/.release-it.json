@@ -1,7 +1,8 @@
 {
   "git": {
-    "commit": false,
-    "tag": true
+    "commit": true,
+    "tag": true,
+    "requireUpstream": "release"
   },
   "github": {
     "release": true,
