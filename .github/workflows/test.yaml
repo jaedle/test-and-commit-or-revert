@@ -32,4 +32,7 @@ jobs:
         working-directory: release/
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: npm run release
+        run: |
+          git config user.name "release-action"
+          git config user.email "dennis.jekubczyk@gmail.com"
+          npm run release
