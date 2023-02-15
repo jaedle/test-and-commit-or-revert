@@ -4,7 +4,14 @@ This is a cli to apply [TCR](https://medium.com/@kentbeck_7670/test-commit-rever
 
 ## Usage
 
-### Installation
+### Installation through brew
+
+```sh
+brew tap jaedle/test-and-commit-or-revert
+brew install test-and-commit-or-revert
+```
+
+### Installation from source
 
 ```
 task intall
