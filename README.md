@@ -11,6 +11,8 @@ brew tap jaedle/test-and-commit-or-revert
 brew install test-and-commit-or-revert
 ```
 
+You may use `tcr` afterwards.
+
 ### Installation from source
 
 ```
