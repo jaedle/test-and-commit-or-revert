@@ -32,7 +32,7 @@ changelog:
       - '^docs:'
       - '^test:'
 brews:
-  - name: tcr
+  - name: test-and-commit-or-revert
     homepage: https://github.com/jaedle/homebrew-test-and-commit-or-revert
     tap:
       owner: jaedle
