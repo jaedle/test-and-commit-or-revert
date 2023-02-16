@@ -189,18 +189,7 @@ func (t *Tcr) Squash() Result {
 		return Failure
 	}
 
-	log, err := t.repo.Log(&git.LogOptions{})
-	if err != nil {
-		t.logger.Err(err).Msg("error on reading git log")
-		return Error
-	}
-
-	var result []*object.Commit
-	err = log.ForEach(func(c *object.Commit) error {
-		result = append(result, c)
-		return nil
-	})
-
+	result, err := t.getHistory()
 	if err != nil {
 		t.logger.Err(err).Msg("error on reading git log")
 		return Error
@@ -232,6 +221,26 @@ func (t *Tcr) Squash() Result {
 	} else {
 		return Success
 	}
+
+}
+
+func (t *Tcr) getHistory() ([]*object.Commit, error) {
+	log, err := t.repo.Log(&git.LogOptions{})
+	if err != nil {
+		t.logger.Err(err).Msg("error on reading git log")
+		return nil, err
+	}
+
+	var result []*object.Commit
+	err = log.ForEach(func(c *object.Commit) error {
+		result = append(result, c)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 
 }
 
