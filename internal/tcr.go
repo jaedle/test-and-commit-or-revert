@@ -39,7 +39,7 @@ type Tcr struct {
 	testCommand []string
 }
 
-func (t *Tcr) RunTcr() Result {
+func (t *Tcr) Tcr() Result {
 	if err := t.openRepository(); err != nil {
 		t.logger.Err(err).Msg("error on opening git repository")
 		return Error
@@ -175,7 +175,7 @@ func (t *Tcr) revert() error {
 	})
 }
 
-func (t *Tcr) RunSquash() Result {
+func (t *Tcr) Squash() Result {
 	if err := t.openRepository(); err != nil {
 		t.logger.Err(err).Msg("error on opening git repository")
 		return Error
@@ -221,23 +221,28 @@ func (t *Tcr) RunSquash() Result {
 		return Failure
 	}
 
+	if err := t.resetToCommit(result[refactoringCommits]); err != nil {
+		t.logger.Error().Err(err).Str("hash", result[refactoringCommits].Hash.String()).Msg("error on resetting to commit")
+		return Error
+	}
+
+	if err := t.commit(); err != nil {
+		t.logger.Error().Err(err).Msg("error on commit")
+		return Failure
+	} else {
+		return Success
+	}
+
+}
+
+func (t *Tcr) resetToCommit(c *object.Commit) error {
 	worktree, err := t.repo.Worktree()
 	if err != nil {
-		return Error
+		return nil
 	}
 
-	err = worktree.Reset(&git.ResetOptions{
-		Commit: result[refactoringCommits].Hash,
+	return worktree.Reset(&git.ResetOptions{
+		Commit: c.Hash,
 		Mode:   git.SoftReset,
 	})
-	if err != nil {
-		return Error
-	}
-
-	err = t.commit()
-	if err != nil {
-		return Failure
-	}
-
-	return Success
 }
