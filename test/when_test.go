@@ -33,3 +33,23 @@ func whenIRunTcr(binary string, workdir string) tcrOutput {
 		stdErr:   stdErr.String(),
 	}
 }
+
+func whenIRunTcrToSquashCommits(binary string, workdir string) tcrOutput {
+	cmd := exec.Command(binary, "squash")
+	cmd.Dir = workdir
+
+	var stdOut bytes.Buffer
+	var stdErr bytes.Buffer
+	session, err := gexec.Start(cmd, &stdOut, &stdErr)
+	Expect(err).NotTo(HaveOccurred())
+	session.Wait()
+
+	_, _ = GinkgoWriter.Write(stdErr.Bytes())
+	_, _ = GinkgoWriter.Write(stdOut.Bytes())
+
+	return tcrOutput{
+		exitCode: session.ExitCode(),
+		stdOut:   stdOut.String(),
+		stdErr:   stdErr.String(),
+	}
+}

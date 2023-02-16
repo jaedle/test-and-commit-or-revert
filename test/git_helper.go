@@ -86,15 +86,7 @@ func (h *GitHelper) IsWorkingTreeClean() (bool, error) {
 }
 
 func (h *GitHelper) Commit() error {
-	if wt, err := h.repo.Worktree(); err != nil {
-		return err
-	} else if err := wt.AddGlob("*"); err != nil {
-		return err
-	} else {
-		_, err := wt.Commit("commit", &git.CommitOptions{})
-		return err
-	}
-
+	return h.CommitWithMessage("message")
 }
 
 func (h *GitHelper) Init() error {
@@ -146,4 +138,15 @@ func (h *GitHelper) Add(name string) error {
 	_, err = worktree.Add(name)
 	return err
 
+}
+
+func (h *GitHelper) CommitWithMessage(message string) error {
+	if wt, err := h.repo.Worktree(); err != nil {
+		return err
+	} else if err := wt.AddGlob("*"); err != nil {
+		return err
+	} else {
+		_, err := wt.Commit(message, &git.CommitOptions{})
+		return err
+	}
 }

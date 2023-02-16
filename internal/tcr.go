@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/rs/zerolog"
 	"os"
 	"os/exec"
@@ -38,7 +39,7 @@ type Tcr struct {
 	testCommand []string
 }
 
-func (t *Tcr) Run() Result {
+func (t *Tcr) RunTcr() Result {
 	if err := t.openRepository(); err != nil {
 		t.logger.Err(err).Msg("error on opening git repository")
 		return Error
@@ -172,4 +173,71 @@ func (t *Tcr) revert() error {
 	return worktree.Reset(&git.ResetOptions{
 		Mode: git.HardReset,
 	})
+}
+
+func (t *Tcr) RunSquash() Result {
+	if err := t.openRepository(); err != nil {
+		t.logger.Err(err).Msg("error on opening git repository")
+		return Error
+	}
+
+	if clean, err := t.cleanWorktree(); err != nil {
+		t.logger.Err(err).Msg("error on reading git worktree")
+		return Error
+	} else if !clean {
+		t.logger.Error().Msg("worktree is not clean, no squashing possible")
+		return Failure
+	}
+
+	log, err := t.repo.Log(&git.LogOptions{})
+	if err != nil {
+		t.logger.Err(err).Msg("error on reading git log")
+		return Error
+	}
+
+	var result []*object.Commit
+	err = log.ForEach(func(c *object.Commit) error {
+		result = append(result, c)
+		return nil
+	})
+
+	if err != nil {
+		t.logger.Err(err).Msg("error on reading git log")
+		return Error
+	}
+
+	var refactoringCommits = 0
+	for _, s := range result {
+		if s.Message == "[WIP] refactoring" {
+			refactoringCommits++
+		}
+	}
+
+	if refactoringCommits == 0 {
+		t.logger.Info().Msg("no refactoring commits, nothing to do")
+		return Failure
+	} else if refactoringCommits == 1 {
+		t.logger.Info().Msg("only one refactoring commit, nothing to do")
+		return Failure
+	}
+
+	worktree, err := t.repo.Worktree()
+	if err != nil {
+		return Error
+	}
+
+	err = worktree.Reset(&git.ResetOptions{
+		Commit: result[refactoringCommits].Hash,
+		Mode:   git.SoftReset,
+	})
+	if err != nil {
+		return Error
+	}
+
+	err = t.commit()
+	if err != nil {
+		return Failure
+	}
+
+	return Success
 }

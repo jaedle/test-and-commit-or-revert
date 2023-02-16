@@ -9,7 +9,7 @@ import (
 
 const configFile = "tcr.json"
 
-func givenAPassingTestSetup(workdir string, dir string, helper *test.GitHelper) {
+func givenAPassingTestSetup(workdir string, helper *test.GitHelper) {
 	givenAPassingTestSetupWithOutput(workdir, helper, "any")
 }
 
@@ -60,6 +60,13 @@ func givenACommit(workdir string, helper *test.GitHelper, f test.Files) {
 
 	Expect(helper.Commit()).NotTo(HaveOccurred())
 }
+func givenACommitWithMessage(workdir string, helper *test.GitHelper, f test.Files, message string) {
+	for _, file := range f {
+		Expect(os.WriteFile(path.Join(workdir, file.Name), []byte(file.Content), os.ModePerm)).NotTo(HaveOccurred())
+	}
+
+	Expect(helper.CommitWithMessage(message)).NotTo(HaveOccurred())
+}
 
 func givenAGitHistory(helper *test.GitHelper) test.GitHistory {
 	commits, err := helper.Commits()
@@ -100,5 +107,10 @@ func givenATestCommandThatNeedsArguments(gitHelper *test.GitHelper, workdir stri
 }
 
 func givenAnyUnstagedChanges(workdir string) {
+	givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
+}
+
+func givenADirtyWorkingTree(workdir string, helper *test.GitHelper) {
+	givenAPassingTestSetup(workdir, helper)
 	givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 }

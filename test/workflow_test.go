@@ -9,8 +9,12 @@ import (
 )
 
 const defaultCommitMessage = "[WIP] refactoring"
-const aFileName = "new"
+const aFileName = "name"
+const anotherFileName = "another-file-name"
+const yetAnotherFilename = "yet-another-file-name"
 const aContent = "some content"
+const anotherContent = "some other content"
+const yetAnotherContent = "yet another other content"
 const anUpdatedContent = "updated content"
 
 var _ = Describe("Workflow", Ordered, func() {
@@ -48,7 +52,7 @@ var _ = Describe("Workflow", Ordered, func() {
 
 		Context("test passes", func() {
 			It("commits untracked files", func() {
-				givenAPassingTestSetup(workdir, "", gitHelper)
+				givenAPassingTestSetup(workdir, gitHelper)
 				history := givenAGitHistory(gitHelper)
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: aContent}})
 
@@ -61,7 +65,7 @@ var _ = Describe("Workflow", Ordered, func() {
 			})
 
 			It("commits tracked files", func() {
-				givenAPassingTestSetup(workdir, "", gitHelper)
+				givenAPassingTestSetup(workdir, gitHelper)
 				givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 				givenUnstangedChanges(workdir, test.Files{{Name: aFileName, Content: anUpdatedContent}})
 				history := givenAGitHistory(gitHelper)
@@ -175,7 +179,7 @@ var _ = Describe("Workflow", Ordered, func() {
 
 	Context("clean worktree", func() {
 		It("does not create a new commit", func() {
-			givenAPassingTestSetup(workdir, "", gitHelper)
+			givenAPassingTestSetup(workdir, gitHelper)
 			givenACommit(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}})
 			commits := givenAGitHistory(gitHelper)
 			result := whenIRunTcr(binary, workdir)
@@ -210,6 +214,53 @@ var _ = Describe("Workflow", Ordered, func() {
 
 			thenTcrFails(result)
 		})
+	})
+
+	Context("squash commits", func() {
+		It("fails on a dirty working tree", func() {
+			givenADirtyWorkingTree(workdir, gitHelper)
+			result := whenIRunTcrToSquashCommits(binary, workdir)
+
+			thenTcrFails(result)
+		})
+
+		It("fails if no commits to squash", func() {
+			givenAFailingTestSetup(workdir, gitHelper)
+			givenACommitWithMessage(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}}, "message")
+			result := whenIRunTcrToSquashCommits(binary, workdir)
+
+			thenTcrFails(result)
+		})
+
+		It("fails to squash a single commit", func() {
+			givenAFailingTestSetup(workdir, gitHelper)
+			givenACommitWithMessage(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}}, "[WIP] refactoring")
+			result := whenIRunTcrToSquashCommits(binary, workdir)
+
+			thenTcrFails(result)
+		})
+
+		It("squashes multiple commits", func() {
+			givenAFailingTestSetup(workdir, gitHelper)
+			commits := givenAGitHistory(gitHelper)
+
+			givenACommitWithMessage(workdir, gitHelper, test.Files{{Name: aFileName, Content: aContent}}, "[WIP] refactoring")
+			givenACommitWithMessage(workdir, gitHelper, test.Files{{Name: anotherFileName, Content: anotherContent}}, "[WIP] refactoring")
+			givenACommitWithMessage(workdir, gitHelper, test.Files{{Name: yetAnotherFilename, Content: yetAnotherContent}}, "[WIP] refactoring")
+			result := whenIRunTcrToSquashCommits(binary, workdir)
+
+			thenTcrSucceeds(result)
+			thenTheWorkingTreeIsClean(gitHelper)
+			thenANewCommitIsAdded(gitHelper, commits, "[WIP] refactoring")
+			thenThoseFilesExist(workdir, test.Files{
+				{Name: aFileName, Content: aContent},
+				{Name: anotherFileName, Content: anotherContent},
+				{Name: yetAnotherFilename, Content: yetAnotherContent},
+			},
+			)
+
+		})
+
 	})
 
 })

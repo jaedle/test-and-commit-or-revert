@@ -6,7 +6,20 @@ import (
 )
 
 func main() {
-	switch internal.New().Run() {
+	if len(os.Args) > 1 {
+		if os.Args[1] == "squash" {
+			switch internal.New().RunSquash() {
+			case internal.Success:
+				os.Exit(0)
+			case internal.Failure:
+				os.Exit(1)
+			case internal.Error:
+				os.Exit(1)
+			}
+		}
+	}
+
+	switch internal.New().RunTcr() {
 	case internal.Success:
 		os.Exit(0)
 	case internal.Failure:
