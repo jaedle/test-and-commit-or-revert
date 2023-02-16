@@ -189,29 +189,22 @@ func (t *Tcr) Squash() Result {
 		return Failure
 	}
 
-	result, err := t.getHistory()
+	history, err := t.getHistory()
 	if err != nil {
 		t.logger.Err(err).Msg("error on reading git log")
 		return Error
 	}
 
-	var refactoringCommits = 0
-	for _, s := range result {
-		if s.Message == "[WIP] refactoring" {
-			refactoringCommits++
-		}
-	}
-
-	if refactoringCommits == 0 {
-		t.logger.Info().Msg("no refactoring commits, nothing to do")
+	if t.numberOfRefactoringCommits(history) == 0 {
+		t.logger.Error().Msg("no refactoring commits, nothing to do")
 		return Failure
-	} else if refactoringCommits == 1 {
+	} else if t.numberOfRefactoringCommits(history) == 1 {
 		t.logger.Info().Msg("only one refactoring commit, nothing to do")
 		return Failure
 	}
 
-	if err := t.resetToCommit(result[refactoringCommits]); err != nil {
-		t.logger.Error().Err(err).Str("hash", result[refactoringCommits].Hash.String()).Msg("error on resetting to commit")
+	if err := t.resetToCommit(history[t.numberOfRefactoringCommits(history)]); err != nil {
+		t.logger.Error().Err(err).Str("hash", history[t.numberOfRefactoringCommits(history)].Hash.String()).Msg("error on resetting to commit")
 		return Error
 	}
 
@@ -222,6 +215,18 @@ func (t *Tcr) Squash() Result {
 		return Success
 	}
 
+}
+
+func (t *Tcr) numberOfRefactoringCommits(history []*object.Commit) int {
+	var result = 0
+
+	for _, s := range history {
+		if s.Message == "[WIP] refactoring" {
+			result++
+		}
+	}
+
+	return result
 }
 
 func (t *Tcr) getHistory() ([]*object.Commit, error) {
