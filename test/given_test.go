@@ -7,6 +7,8 @@ import (
 	"path"
 )
 
+const configFile = "tcr.json"
+
 func givenAPassingTestSetup(workdir string, dir string, helper *test.GitHelper) {
 	givenAPassingTestSetupWithOutput(workdir, helper, "any")
 }
@@ -17,7 +19,7 @@ func givenATestThatLogsRun(workdir string, tmpTestDir string, helper *test.GitHe
 	ran := path.Join(tmpTestDir, "ran")
 
 	givenUnstangedChanges(workdir, test.Files{
-		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
+		{Name: configFile, Content: `{"test": "./test.sh"}`},
 		{Name: "test.sh", Content: "#!/usr/bin/env bash\ntouch '" + (ran) + "'\nexit 1"},
 	})
 
@@ -32,7 +34,7 @@ func givenATestSetupWithNonExecutableTests(workdir string, helper *test.GitHelpe
 	Expect(helper.Init()).NotTo(HaveOccurred())
 
 	givenUnstangedChanges(workdir, test.Files{
-		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
+		{Name: configFile, Content: `{"test": "./test.sh"}`},
 	})
 
 	Expect(helper.Commit()).NotTo(HaveOccurred())
@@ -69,7 +71,7 @@ func givenAFailingTestSetupWithOutput(workdir string, helper *test.GitHelper, te
 	Expect(helper.Init()).NotTo(HaveOccurred())
 
 	givenUnstangedChanges(workdir, test.Files{
-		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
+		{Name: configFile, Content: `{"test": "./test.sh"}`},
 		{Name: "test.sh", Content: "#!/usr/bin/env bash\necho'" + testOutput + "'\nexit 1"},
 	})
 
@@ -79,7 +81,7 @@ func givenAPassingTestSetupWithOutput(workdir string, helper *test.GitHelper, te
 	Expect(helper.Init()).NotTo(HaveOccurred())
 
 	givenUnstangedChanges(workdir, test.Files{
-		{Name: "tcr.json", Content: `{"test": "./test.sh"}`},
+		{Name: configFile, Content: `{"test": "./test.sh"}`},
 		{Name: "test.sh", Content: "#!/usr/bin/env bash\necho'" + testOutput + "'\nexit 0"},
 	})
 
@@ -89,7 +91,7 @@ func givenAPassingTestSetupWithOutput(workdir string, helper *test.GitHelper, te
 func givenATestCommandThatNeedsArguments(gitHelper *test.GitHelper, workdir string) {
 	Expect(gitHelper.Init()).NotTo(HaveOccurred())
 	givenUnstangedChanges(workdir, test.Files{
-		{Name: "tcr.json", Content: `{"test": "./test.sh argument1 argument2"}`},
+		{Name: configFile, Content: `{"test": "./test.sh argument1 argument2"}`},
 		{Name: "test.sh", Content: `#!/usr/bin/env bash
 [[ "$1" == 'argument1' ]]
 [[ "$2" == 'argument2' ]]`},
