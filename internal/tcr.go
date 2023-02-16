@@ -203,8 +203,10 @@ func (t *Tcr) Squash() Result {
 		return Failure
 	}
 
-	if err := t.resetToCommit(history[t.numberOfRefactoringCommits(history)]); err != nil {
-		t.logger.Error().Err(err).Str("hash", history[t.numberOfRefactoringCommits(history)].Hash.String()).Msg("error on resetting to commit")
+	resetTo := history[t.numberOfRefactoringCommits(history)]
+
+	if err := t.resetToCommit(resetTo); err != nil {
+		t.logger.Error().Err(err).Str("hash", resetTo.Hash.String()).Msg("error on resetting to commit")
 		return Error
 	}
 
