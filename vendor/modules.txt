@@ -146,7 +146,7 @@ github.com/kevinburke/ssh_config
 # github.com/mattn/go-colorable v0.1.13
 ## explicit; go 1.15
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.17
+# github.com/mattn/go-isatty v0.0.19
 ## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/onsi/ginkgo/v2 v2.12.1
@@ -190,7 +190,7 @@ github.com/onsi/gomega/types
 github.com/pjbgf/sha1cd
 github.com/pjbgf/sha1cd/internal
 github.com/pjbgf/sha1cd/ubc
-# github.com/rs/zerolog v1.30.0
+# github.com/rs/zerolog v1.31.0
 ## explicit; go 1.15
 github.com/rs/zerolog
 github.com/rs/zerolog/internal/cbor
