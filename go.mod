@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/onsi/ginkgo/v2 v2.17.0
+	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
 	github.com/rs/zerolog v1.32.0
 )
