@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/go-git/go-git/v5 v5.16.4
-	github.com/onsi/ginkgo/v2 v2.28.0
+	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.1
 	github.com/rs/zerolog v1.34.0
 )
