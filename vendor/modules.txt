@@ -198,7 +198,7 @@ github.com/onsi/gomega/types
 github.com/pjbgf/sha1cd
 github.com/pjbgf/sha1cd/internal
 github.com/pjbgf/sha1cd/ubc
-# github.com/rs/zerolog v1.35.0
+# github.com/rs/zerolog v1.35.1
 ## explicit; go 1.23
 github.com/rs/zerolog
 github.com/rs/zerolog/internal/cbor
